@@ -101,6 +101,9 @@ function draw() {
 function tick(timestamp) {
   if (lastTimestamp === undefined) {
     lastTimestamp = timestamp;
+    draw();
+    requestAnimationFrame(tick);
+    return;
   }
   const elapsedSeconds = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
   lastTimestamp = timestamp;
