@@ -1,0 +1,47 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0a1022;
+  color: #f4f7ff;
+}
+
+main {
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.7rem;
+}
+
+.subtitle {
+  margin: 0.35rem 0 1rem;
+  color: #c7d4ff;
+}
+
+.controls {
+  display: grid;
+  gap: 0.45rem;
+  margin-bottom: 1rem;
+}
+
+label {
+  font-size: 0.95rem;
+}
+
+input[type="range"] {
+  width: 100%;
+}
+
+canvas {
+  width: 100%;
+  max-width: 720px;
+  border: 1px solid #2f3f66;
+  background: radial-gradient(circle at center, #040914 0%, #02040a 80%);
+}
