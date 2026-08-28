@@ -28,6 +28,8 @@ function resetSimulation() {
 
   state = {
     starMass,
+    distance,
+    velocity,
     x: distance,
     y: 0,
     vx: 0,
@@ -40,8 +42,8 @@ function resetSimulation() {
 
 function updateValueLabels() {
   starMassValue.textContent = state.starMass.toFixed(0);
-  distanceValue.textContent = currentSettings().distance.toFixed(0);
-  velocityValue.textContent = currentSettings().velocity.toFixed(2);
+  distanceValue.textContent = state.distance.toFixed(0);
+  velocityValue.textContent = state.velocity.toFixed(2);
 }
 
 function step() {
@@ -105,4 +107,5 @@ function tick() {
 });
 
 resetSimulation();
-tick();
+draw();
+requestAnimationFrame(tick);
