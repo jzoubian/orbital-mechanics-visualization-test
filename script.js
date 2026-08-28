@@ -95,9 +95,6 @@ function draw() {
 }
 
 function tick() {
-  if (!state) {
-    return;
-  }
   step();
   draw();
   requestAnimationFrame(tick);
