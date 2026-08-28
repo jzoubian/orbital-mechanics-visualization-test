@@ -97,8 +97,8 @@ function draw() {
 }
 
 function tick() {
-  step();
   draw();
+  step();
   requestAnimationFrame(tick);
 }
 
@@ -107,5 +107,4 @@ function tick() {
 });
 
 resetSimulation();
-draw();
 requestAnimationFrame(tick);
