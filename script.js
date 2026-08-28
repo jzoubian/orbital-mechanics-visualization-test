@@ -1,103 +1,129 @@
 const canvas = document.getElementById("orbit-canvas");
 const ctx = canvas.getContext("2d");
-
-const starMassInput = document.getElementById("star-mass");
-const distanceInput = document.getElementById("distance");
-const velocityInput = document.getElementById("velocity");
-const secondaryMassInput = document.getElementById("secondary-mass");
-const secondaryDistanceInput = document.getElementById("secondary-distance");
-const secondaryVelocityInput = document.getElementById("secondary-velocity");
-
-const starMassValue = document.getElementById("star-mass-value");
-const distanceValue = document.getElementById("distance-value");
-const velocityValue = document.getElementById("velocity-value");
-const secondaryMassValue = document.getElementById("secondary-mass-value");
-const secondaryDistanceValue = document.getElementById("secondary-distance-value");
-const secondaryVelocityValue = document.getElementById("secondary-velocity-value");
+const bodyListEl = document.getElementById("body-list");
+const addBodyBtn = document.getElementById("add-body-btn");
 
 const G = 1;
 const simulationSpeed = 12;
-const primaryBodyMass = 1.5;
 const trailLength = 400;
+
+const PLANET_COLORS = [
+  "#7fffd4", "#ff8fab", "#a0c4ff", "#ffd166", "#c77dff",
+  "#06d6a0", "#ef476f", "#118ab2", "#ffc43d", "#b7e4c7",
+];
+
+let bodyDefs = [
+  { name: "Sun",     mass: 200,  distance: 0,   velocity: 0,    color: "#ffd166", radius: 10, isStar: true },
+  { name: "Mercury", mass: 1,    distance: 80,  velocity: 1.58, color: "#7fffd4", radius: 3 },
+  { name: "Venus",   mass: 2,    distance: 120, velocity: 1.29, color: "#ff8fab", radius: 4 },
+  { name: "Earth",   mass: 3,    distance: 160, velocity: 1.12, color: "#a0c4ff", radius: 4.5 },
+  { name: "Mars",    mass: 1.5,  distance: 210, velocity: 0.95, color: "#c77dff", radius: 3.5 },
+];
 
 let state = null;
 let lastTimestamp;
 
-function currentSettings() {
-  return {
-    starMass: Number(starMassInput.value),
-    distance: Number(distanceInput.value),
-    velocity: Number(velocityInput.value),
-    secondaryMass: Number(secondaryMassInput.value),
-    secondaryDistance: Number(secondaryDistanceInput.value),
-    secondaryVelocity: Number(secondaryVelocityInput.value),
-  };
+function buildBodyRows() {
+  bodyListEl.innerHTML = "";
+  bodyDefs.forEach((def, i) => {
+    const section = document.createElement("section");
+    section.className = "control-group";
+
+    const header = document.createElement("div");
+    header.className = "body-row-header";
+
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.className = "body-name-input";
+    nameInput.value = def.name;
+    nameInput.addEventListener("change", (e) => {
+      bodyDefs[i].name = e.target.value;
+      resetSimulation();
+    });
+
+    header.appendChild(nameInput);
+
+    if (!def.isStar) {
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "remove-body-btn";
+      removeBtn.textContent = "Remove";
+      removeBtn.addEventListener("click", () => {
+        bodyDefs.splice(i, 1);
+        buildBodyRows();
+        resetSimulation();
+      });
+      header.appendChild(removeBtn);
+    }
+
+    section.appendChild(header);
+
+    function addSlider(label, key, min, max, step) {
+      const lbl = document.createElement("label");
+      const span = document.createElement("span");
+      span.className = "slider-value";
+      span.textContent = def[key].toFixed(step < 1 ? 2 : 0);
+      lbl.textContent = label + ": ";
+      lbl.appendChild(span);
+
+      const input = document.createElement("input");
+      input.type = "range";
+      input.min = min;
+      input.max = max;
+      input.step = step;
+      input.value = def[key];
+      input.addEventListener("input", () => {
+        bodyDefs[i][key] = Number(input.value);
+        span.textContent = Number(input.value).toFixed(step < 1 ? 2 : 0);
+        resetSimulation();
+      });
+
+      section.appendChild(lbl);
+      section.appendChild(input);
+    }
+
+    addSlider("Mass", "mass", def.isStar ? 50 : 0, def.isStar ? 500 : 30, def.isStar ? 10 : 0.5);
+    if (!def.isStar) {
+      addSlider("Initial distance", "distance", 40, 320, 5);
+      addSlider("Initial velocity", "velocity", 0.1, 5.0, 0.05);
+    }
+
+    bodyListEl.appendChild(section);
+  });
 }
 
 function resetSimulation() {
-  const {
-    starMass,
-    distance,
-    velocity,
-    secondaryMass,
-    secondaryDistance,
-    secondaryVelocity,
-  } = currentSettings();
-
-  const primaryBody = {
-    key: "primary",
-    mass: primaryBodyMass,
-    x: distance,
-    y: 0,
-    vx: 0,
-    vy: velocity,
-    color: "#7fffd4",
-    radius: 5,
-    trail: [],
-  };
-
-  const secondaryBody = {
-    key: "secondary",
-    mass: secondaryMass,
-    x: -secondaryDistance,
-    y: 0,
-    vx: 0,
-    vy: -secondaryVelocity,
-    color: "#ff8fab",
-    radius: 4.5,
-    trail: [],
-  };
-
+  const starDef = bodyDefs[0];
   const starBody = {
     key: "star",
-    mass: starMass,
+    mass: starDef.mass,
     x: 0,
     y: 0,
     vx: 0,
     vy: 0,
-    color: "#ffd166",
-    radius: 10,
+    color: starDef.color,
+    radius: starDef.radius,
     trail: [],
+    isStar: true,
   };
 
-  const totalMomentumY = primaryBody.mass * primaryBody.vy + secondaryBody.mass * secondaryBody.vy;
-  starBody.vy = totalMomentumY === 0 ? 0 : -totalMomentumY / starBody.mass;
+  const planetBodies = bodyDefs.slice(1).map((def, pi) => ({
+    key: def.name,
+    mass: def.mass,
+    x: def.distance,
+    y: 0,
+    vx: 0,
+    vy: def.velocity,
+    color: def.color || PLANET_COLORS[pi % PLANET_COLORS.length],
+    radius: def.radius || 4,
+    trail: [],
+  }));
 
-  state = {
-    bodies: [starBody, primaryBody, secondaryBody],
-  };
+  const totalMomentumY = planetBodies.reduce((sum, b) => sum + b.mass * b.vy, 0);
+  starBody.vy = starBody.mass > 0 ? -totalMomentumY / starBody.mass : 0;
 
+  state = { bodies: [starBody, ...planetBodies] };
   lastTimestamp = undefined;
-  updateValueLabels();
-}
-
-function updateValueLabels() {
-  starMassValue.textContent = state.bodies[0].mass.toFixed(0);
-  distanceValue.textContent = state.bodies[1].x.toFixed(0);
-  velocityValue.textContent = state.bodies[1].vy.toFixed(2);
-  secondaryMassValue.textContent = state.bodies[2].mass.toFixed(1);
-  secondaryDistanceValue.textContent = Math.abs(state.bodies[2].x).toFixed(0);
-  secondaryVelocityValue.textContent = Math.abs(state.bodies[2].vy).toFixed(2);
 }
 
 function getAccelerations(bodies) {
@@ -135,7 +161,7 @@ function step(stepDt) {
     body.x += body.vx * stepDt;
     body.y += body.vy * stepDt;
 
-    if (body.key !== "star") {
+    if (!body.isStar) {
       body.trail.push({ x: body.x, y: body.y });
       if (body.trail.length > trailLength) {
         body.trail.shift();
@@ -161,7 +187,7 @@ function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   state.bodies.forEach((body) => {
-    if (body.key === "star" || body.trail.length < 2) {
+    if (body.isStar || body.trail.length < 2) {
       return;
     }
 
@@ -206,9 +232,22 @@ function tick(timestamp) {
   requestAnimationFrame(tick);
 }
 
-[starMassInput, distanceInput, velocityInput, secondaryMassInput, secondaryDistanceInput, secondaryVelocityInput].forEach((input) => {
-  input.addEventListener("input", resetSimulation);
+addBodyBtn.addEventListener("click", () => {
+  const planetCount = bodyDefs.length - 1;
+  const maxDistance = bodyDefs.reduce((max, d) => Math.max(max, d.distance || 0), 0);
+  bodyDefs.push({
+    name: `Planet ${planetCount + 1}`,
+    mass: 2,
+    distance: maxDistance + 40,
+    velocity: 1.0,
+    color: PLANET_COLORS[(planetCount) % PLANET_COLORS.length],
+    radius: 4,
+  });
+  buildBodyRows();
+  resetSimulation();
 });
 
+buildBodyRows();
 resetSimulation();
 requestAnimationFrame(tick);
+
