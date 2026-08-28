@@ -9,7 +9,7 @@ Open `index.html` in a browser.
 ## Features
 
 - Canvas-based 2D animation
-- Newtonian gravity simulation of a star and one planet
-- Sliders for central mass, initial distance, and initial velocity
+- Newtonian gravity simulation of a star and two orbiting bodies
+- Sliders for central mass, primary orbit distance and velocity, and secondary body mass/distance/velocity
 - Simulation restart when slider values change
 - GitHub Actions workflow to deploy to GitHub Pages on pushes to `main`
