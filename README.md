@@ -4,7 +4,7 @@ A simple web-based orbital mechanics teaching demo built with plain HTML, CSS, a
 
 ## Run locally
 
-Open `/home/runner/work/orbital-mechanics-visualization-test/orbital-mechanics-visualization-test/index.html` in a browser.
+Open `index.html` in a browser.
 
 ## Features
 
