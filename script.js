@@ -10,10 +10,11 @@ const distanceValue = document.getElementById("distance-value");
 const velocityValue = document.getElementById("velocity-value");
 
 const G = 1;
-const dt = 0.2;
+const simulationSpeed = 12;
 
 let state = null;
 let trail = [];
+let lastTimestamp;
 
 function currentSettings() {
   return {
@@ -37,6 +38,7 @@ function resetSimulation() {
   };
 
   trail = [];
+  lastTimestamp = undefined;
   updateValueLabels();
 }
 
@@ -46,7 +48,7 @@ function updateValueLabels() {
   velocityValue.textContent = state.velocity.toFixed(2);
 }
 
-function step() {
+function step(stepDt) {
   const rSquared = state.x * state.x + state.y * state.y;
   const r = Math.sqrt(rSquared);
   const safeR = Math.max(r, 1e-6);
@@ -54,10 +56,10 @@ function step() {
   const ax = -(accelMagnitude * state.x) / safeR;
   const ay = -(accelMagnitude * state.y) / safeR;
 
-  state.vx += ax * dt;
-  state.vy += ay * dt;
-  state.x += state.vx * dt;
-  state.y += state.vy * dt;
+  state.vx += ax * stepDt;
+  state.vy += ay * stepDt;
+  state.x += state.vx * stepDt;
+  state.y += state.vy * stepDt;
 
   trail.push({ x: state.x, y: state.y });
   if (trail.length > 400) {
@@ -96,9 +98,15 @@ function draw() {
   ctx.fill();
 }
 
-function tick() {
+function tick(timestamp) {
+  if (lastTimestamp === undefined) {
+    lastTimestamp = timestamp;
+  }
+  const elapsedSeconds = Math.min((timestamp - lastTimestamp) / 1000, 0.05);
+  lastTimestamp = timestamp;
+
+  step(elapsedSeconds * simulationSpeed);
   draw();
-  step();
   requestAnimationFrame(tick);
 }
 
