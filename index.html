@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orbital Mechanics Visualization</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <h1>Orbital Mechanics Demo</h1>
+    <p class="subtitle">2-body Newtonian gravity with a semi-implicit Euler integrator.</p>
+
+    <section class="controls">
+      <label for="star-mass">Central mass: <span id="star-mass-value"></span></label>
+      <input id="star-mass" type="range" min="50" max="500" value="200" step="10">
+
+      <label for="distance">Initial distance: <span id="distance-value"></span></label>
+      <input id="distance" type="range" min="60" max="260" value="160" step="5">
+
+      <label for="velocity">Initial orbital velocity: <span id="velocity-value"></span></label>
+      <input id="velocity" type="range" min="0.4" max="3.0" value="1.1" step="0.05">
+    </section>
+
+    <canvas id="orbit-canvas" width="720" height="480" role="img" aria-label="Orbital simulation"></canvas>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
